@@ -1,0 +1,98 @@
+﻿@page "/products"
+<Div>
+    <Card>
+        <CardHeader>
+                <h3>Product List</h3>
+            <Button Clicked="ShowModal" Color="Color.Success" Size="Size.Medium">Create</Button>
+        </CardHeader>
+        <CardBody>
+            <Table Bordered>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderCell>#</TableHeaderCell>
+                        <TableHeaderCell>Tên sản phẩm</TableHeaderCell>
+                        <TableHeaderCell>Mã sản phẩm</TableHeaderCell>
+                        <TableHeaderCell>Đơn giá</TableHeaderCell>
+                        <TableHeaderCell>Thao tác</TableHeaderCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    @if( productDtos != null)
+                    {
+                        @foreach (var product in productDtos)
+                        {
+                            <TableRow>
+                                <TableRowHeader>1</TableRowHeader>
+                                <TableRowCell>@product.Name</TableRowCell>
+                                    <TableRowCell>@product.ProductCode</TableRowCell>
+                                    <TableRowCell>@product.PurchasePrice</TableRowCell>
+                                    <TableRowCell>
+                                        <Div>
+                                            <Button Clicked="() => ShowModalUpdate(product.Id)" Color="Color.Warning" Size="Size.Medium">Update</Button>
+                                            <Button Clicked="() => ShowModalDelete(product.Id)" Color="Color.Danger" Size="Size.Medium">Delete</Button>
+                                        </Div>
+                                    </TableRowCell>
+                                </TableRow>
+                        }
+                    } 
+                    else
+                    {
+                        <p>Loading...</p>
+                    }
+
+                </TableBody>
+            </Table>
+        </CardBody>
+    </Card>
+</Div>
+
+@* Modal Create Product*@
+<Modal @bind-Visible="@modalVisible" Closing="@OnModalClosing">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Create new Product</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+            <ModalBody>
+                <Field>
+                    <FieldLabel>Loại nhập hàng</FieldLabel>
+                    <TextEdit @bind-Text=@InputProductDto.Name />
+                </Field>
+                <Field>
+                    <FieldLabel>Mã sản phẩm</FieldLabel>
+                    <TextEdit @bind-Text=@InputProductDto.ProductCode />
+                </Field>
+                
+                <Field>
+                    <FieldLabel>Đơn giá</FieldLabel>
+                    <NumericEdit @bind-Value=@InputProductDto.PurchasePrice />
+                </Field>
+            </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+            @if(@isUpdate == true)
+            {
+                <Button Color="Color.Warning" Clicked="() => UpdateProduct(InputProductDto)">Update</Button>
+            }
+            else
+            {
+                <Button Color="Color.Success" Clicked="@CreateProduct">Create</Button>
+            }
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@* Modal Delete Product*@
+<Modal @bind-Visible="@modalDelete">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Are you sure to DELETE this Product ?</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModalDelete">Close</Button>
+            <Button Color="Color.Danger" @onclick="() => DeleteProduct(ProductId)">Delete</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+

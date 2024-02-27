@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.prod.json",
+  "compilerOptions": {
+    "paths": {
+      "@module-topic6": [
+        "projects/module-topic6/src/public-api.ts"
+      ],
+      "@module-topic6/config": [
+        "projects/module-topic6/config/src/public-api.ts"
+      ],
+      "@proxy": ["projects/module-topic6/src/lib/proxy/index.ts"],
+      "@proxy/*": ["projects/module-topic6/src/lib/proxy/*"]
+    }
+  }
+}

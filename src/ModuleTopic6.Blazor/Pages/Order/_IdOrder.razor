@@ -1,0 +1,178 @@
+﻿@page "/orders/detail/{OrderId}"
+<Card>
+    <CardHeader  >
+        @if(orderIdGuid == Guid.Empty)
+        {
+            <Div Class="d-flex justify-content-between">
+                <h3>Tạo mới đơn hàng</h3>
+                <Button Clicked="CraeteOrder" Color="Color.Success" Size="Size.Medium">Tạo mới</Button>
+            </Div>
+        }
+        else
+        {
+            <Div Class="d-flex justify-content-between">
+                <h3>Chi tiết đơn hàng</h3>
+                <Button Clicked="() => UpdateOrder(orderIdGuid)" Color="Color.Success" Size="Size.Medium">Cập nhật</Button>
+            </Div>
+        }
+    </CardHeader>
+    <CardBody>
+        <Table Borderless>
+            <TableBody>
+                <TableRow>
+                    <TableRowCell>
+                        <p>Tên khách hàng</p>
+                    </TableRowCell>
+                    <TableRowCell>
+                        <TextEdit @bind-Text="InputOrderDto.UserName" />
+                     </TableRowCell>
+                    <TableRowCell>Trạng thái</TableRowCell>
+                    <TableRowCell >
+                        <Select @bind-SelectedValue="@InputOrderDto.Status">
+                            <SelectItem>-- Chọn tình trạng</SelectItem>
+                            @foreach(var statusValue in status)
+                            {
+                                <SelectItem Value="statusValue">@statusValue</SelectItem>
+                            }
+                        </Select>
+                    </TableRowCell>
+
+                    <TableRowCell>Tổng số lượng</TableRowCell>
+                    <TableRowCell>
+                        <NumericEdit TValue="int" @bind-Value="InputOrderDto.TotalQuantity" Disabled />
+                    </TableRowCell>
+                </TableRow>
+
+                <TableRow>
+                    <TableRowCell>Số điện thoại</TableRowCell>
+                    <TableRowCell>
+                         <TextEdit @bind-Text="InputOrderDto.PhoneNumber" />
+                    </TableRowCell>
+                    <TableRowCell>Ngày đặt hàng</TableRowCell>
+                    <TableRowCell>
+                         <DateEdit TValue="DateTime" @bind-Date="InputOrderDto.OrderedDate" />
+                    </TableRowCell>
+
+                     <TableRowCell>Tổng tiền</TableRowCell>
+                     <TableRowCell>
+                         <NumericEdit TValue="float" @bind-Value="InputOrderDto.TotalMoney" Disabled />
+                     </TableRowCell>
+                </TableRow>
+
+                <TableRow>
+                    <TableRowCell>Địa chỉ</TableRowCell>
+                    <TableRowCell ColumnSpan="3">
+                         <TextEdit @bind-Text="InputOrderDto.Address" />
+                    </TableRowCell>
+                </TableRow>
+            </TableBody>
+        </Table>
+    </CardBody>
+
+    <CardBody>
+        <Button TextColor="TextColor.White" Color="Color.Primary" Size="Size.Small">Chi tiết mua hàng</Button>
+        <Button TextColor="TextColor.White" Color="Color.Primary" Size="Size.Small">Thuế</Button>
+        <Button TextColor="TextColor.White" Color="Color.Primary" Size="Size.Small">Thông tin giao hàng</Button>
+        <Button @onclick="ShowModal" TextColor="TextColor.White" Color="Color.Primary" Size="Size.Small">+</Button>
+        <Table Bordered Class="mt-2">
+            <TableHeader>
+                <TableRow>
+                    <TableHeaderCell>#</TableHeaderCell>
+                    <TableHeaderCell>Tên sản phẩm</TableHeaderCell>
+                    <TableHeaderCell>Mã sản phẩm</TableHeaderCell>
+                    <TableHeaderCell>SL đặt</TableHeaderCell>
+                    <TableHeaderCell>Đơn giá</TableHeaderCell>
+                    <TableHeaderCell>Tổng giá trị</TableHeaderCell>
+                    <TableHeaderCell>Tùy chỉnh</TableHeaderCell>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                @foreach (var orderList in orderListDtos)
+                {
+                    <TableRow>
+                        <TableRowHeader>1</TableRowHeader>
+                        <TableRowCell>@orderList.Name</TableRowCell>
+                        <TableRowCell>@orderList.ProductCode</TableRowCell>
+                        <TableRowCell>@orderList.OrderedQuantity</TableRowCell>
+                        <TableRowCell>@orderList.PurchasePrice</TableRowCell>
+                        <TableRowCell>@orderList.TotalMoney</TableRowCell>
+                        <TableHeaderCell>
+                            <Button Size="Size.Small" Color="Color.Primary" Clicked="() => ShowUpdateOrderList(orderList.Id)">Chỉnh sửa</Button>
+                            <Button Size="Size.Small" Color="Color.Danger" Clicked="() => SaveOrderListNeedDelete(orderList)">Xóa</Button>
+                        </TableHeaderCell>
+                    </TableRow>
+                }
+            </TableBody>
+        </Table>
+    </CardBody>
+</Card>
+
+<Modal @bind-Visible="@modalVisible" Closing="@OnModalClosing">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Thêm sản phẩm</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody >
+            <Field>
+                <FieldLabel>Tên sản phẩm</FieldLabel>
+                <Select TValue="Guid" SelectedValueChanged="@OnSelectedValueChanged">
+                        @if(ProductDtos != null)
+                        {
+                            @if ( isUPdateOrderLIst == false)
+                            {
+                                <SelectItem Value="@defaultValue">-- Chọn sản phẩm --</SelectItem>
+                                @foreach (var product in ProductDtos)
+                                {
+                                    <SelectItem Value="@product.Id">@product.Name</SelectItem>
+                                }
+                            }
+                            else
+                            {
+                                @foreach (var product in ProductDtos)
+                                {
+                                    <SelectItem Value="@product.Id">@product.Name</SelectItem>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <SelectItem>Loading...</SelectItem>
+                        }
+                    </Select>
+            </Field>
+
+            <Field>
+                <FieldLabel>Mã sản phẩm</FieldLabel>
+                <TextEdit @bind-Text="InputOrderListDto.ProductCode" Disabled />
+            </Field>
+
+            <Field>
+                 <FieldLabel>Số lượng đặt</FieldLabel>
+                 <NumericEdit @bind-Value="InputOrderListDto.OrderedQuantity" TValue="int" @oninput="UpdateQuantity" />
+            </Field>
+
+            <Field>
+                 <FieldLabel>Đơn giá</FieldLabel>
+                 <NumericEdit @bind-Value="InputOrderListDto.PurchasePrice" Disabled TValue="float" />
+            </Field>
+           
+            <Field>
+                <FieldLabel>Tổng giá trị</FieldLabel>
+                <NumericEdit @bind-Value="InputOrderListDto.TotalMoney" Disabled TValue="float" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Hủy</Button>
+            @if( isUPdateOrderLIst == false)
+            {
+                <Button Color="Color.Success" Clicked="() => AddProductToOrderList(SelectedProductId)">Thêm</Button>
+            }
+            else
+            {
+                <Button Color="Color.Success" Clicked="() => UpdateOrderList()">Cập nhật</Button>
+            }
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+

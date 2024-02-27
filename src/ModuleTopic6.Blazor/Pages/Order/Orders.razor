@@ -1,0 +1,66 @@
+﻿@page "/orders"
+<Div>
+    <Card>
+        <CardHeader Class="d-flex justify-content-between">
+            <h3>Order List</h3>
+            <Button Clicked="NavCreateOrder" Color="Color.Success" Size="Size.Medium">Create</Button>
+        </CardHeader>
+        <CardBody>
+            <Table Bordered>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderCell>#</TableHeaderCell>
+                        <TableHeaderCell>Tên khách hàng</TableHeaderCell>
+                        <TableHeaderCell>SĐT</TableHeaderCell>
+                        <TableHeaderCell>Địa chỉ</TableHeaderCell>
+                        <TableHeaderCell>Ngày đặt hàng</TableHeaderCell>
+                        <TableHeaderCell>Trạng thái</TableHeaderCell>
+                        <TableHeaderCell>Tổng tiền</TableHeaderCell>
+                        <TableHeaderCell>Tùy chọn</TableHeaderCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    @if (orderDtos != null)
+                    {
+                        @foreach (var order in orderDtos)
+                        {
+                            <TableRow>
+                                <TableRowHeader>1</TableRowHeader>
+                                <TableRowCell>@order.UserName</TableRowCell>
+                                <TableRowCell>@order.PhoneNumber</TableRowCell>
+                                <TableRowCell>@order.Address</TableRowCell>
+                                <TableRowCell>@order.OrderedDate</TableRowCell>
+                                <TableRowCell>@order.Status</TableRowCell>
+                                <TableRowCell>@order.TotalMoney</TableRowCell>
+                                <TableRowCell>
+                                     <Div>
+                                         <Button Clicked="() => NavDetailOrder(order.Id)" Color="Color.Info" Size="Size.Medium">Detail</Button>
+                                         <Button Clicked="() => ShowModalDelete(order.Id)" Color="Color.Danger" Size="Size.Medium">Delete</Button>
+                                     </Div>
+                                </TableRowCell>
+                             </TableRow>
+                        }
+                    }
+                    else
+                    {
+                        <p>Loading...</p>
+                    }
+
+                </TableBody>
+            </Table>
+        </CardBody>
+    </Card>
+</Div>
+
+<Modal @bind-Visible="@modalDelete">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Bạn có chắc muốn xóa đơn hàng ?</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModalDelete">Close</Button>
+            <Button Color="Color.Danger" @onclick="() => DeleteOrder(orderToDelete)">Delete</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>

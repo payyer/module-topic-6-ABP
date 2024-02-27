@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <Import Project="..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Volo.Abp.AspNetCore.Components.WebAssembly.Theming" Version="8.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\ModuleTopic6.Blazor\ModuleTopic6.Blazor.csproj" />
+        <ProjectReference Include="..\ModuleTopic6.HttpApi.Client\ModuleTopic6.HttpApi.Client.csproj" />
+    </ItemGroup>
+
+</Project>
