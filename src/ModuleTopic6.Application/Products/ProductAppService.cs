@@ -18,29 +18,17 @@ namespace ModuleTopic6.Products
             _productRepository = productRepository;
         }
 
-        public async Task<ProductDto> CreateProductAsync
-            (
-                string name,
-                string productCode, 
-                float purchasePrice
-            )
+        public async Task<ProductDto> CreateProductAsync( ProductDto productDto )
         {
             var product = await _productRepository.InsertAsync(new Product
             { 
-                Name = name,
-                ProductCode = productCode,
-                PurchasePrice = purchasePrice
+                Name = productDto.Name,
+                ProductCode = productDto.ProductCode,
+                PurchasePrice = productDto.PurchasePrice
             });
-            return new ProductDto
-            {
-                Id = product.Id,
-                ProductCode = product.ProductCode,
-                Name= product.Name,
-                PurchasePrice = product.PurchasePrice
-            };
+            var result = ObjectMapper.Map<Product, ProductDto>(product);
+            return result;
         }
-
-
 
         public async Task DeleteProductAsync(Guid productId)
         {
@@ -50,13 +38,8 @@ namespace ModuleTopic6.Products
         public async Task<ProductDto> GetProductByIdAsync(Guid productId)
         {
             var product = await _productRepository.GetAsync(productId);
-            return new ProductDto
-            {
-                Id = product.Id,
-                ProductCode = product.ProductCode,
-                PurchasePrice = product.PurchasePrice,
-                Name = product.Name,
-            };
+            var result = ObjectMapper.Map<Product, ProductDto>(product);
+            return result;
         }
 
         public async Task<List<ProductDto>> GetProductListAsync()
@@ -72,28 +55,17 @@ namespace ModuleTopic6.Products
             ).ToList();
         }
 
-        public async Task<ProductDto> UpdateProductAsync(
-            Guid productId, 
-            string name,
-            string productCode,
-            float purchasePrice
-            )
+        public async Task<ProductDto> UpdateProductAsync( Guid productId, ProductDto productDto )
         {
-
             var productToUpdate = await _productRepository.GetAsync(productId);
-            productToUpdate.ProductCode = productCode;
-            productToUpdate.Name = name;
-            productToUpdate.PurchasePrice = purchasePrice;
 
-            await _productRepository.UpdateAsync(productToUpdate);
+            productToUpdate.Name = productDto.Name;
+            productToUpdate.ProductCode = productDto.ProductCode;
+            productToUpdate.PurchasePrice = productDto.PurchasePrice;
 
-            return new ProductDto
-            {
-                Id = productToUpdate.Id,
-                Name = productToUpdate.Name,
-                ProductCode = productToUpdate.ProductCode,
-                PurchasePrice = productToUpdate.PurchasePrice
-            };
+            var updateProduct =  await _productRepository.UpdateAsync(productToUpdate);
+            var result = ObjectMapper.Map<Product, ProductDto>(updateProduct);
+            return result;
         }
     }
 }

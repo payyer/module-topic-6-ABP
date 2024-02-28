@@ -1,7 +1,5 @@
-﻿using ModuleTopic6.OrderLists;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -20,30 +18,21 @@ namespace ModuleTopic6.Orders
             _orderAppService = orderAppService;
         }
 
-        public async Task<OrderDto> CreateOrderAsync(string userName, string phoneNumber, string address, string status,  int totalQuantity, float totalMoney)
+        public async Task<OrderDto> CreateOrderAsync(OrderDto orderDto)
         {
-            var order = new Order
+            var newOrder = new Order
             {
-                UserName = userName,
-                PhoneNumber = phoneNumber,
-                Address = address,
+                UserName = orderDto.UserName,
+                PhoneNumber = orderDto.PhoneNumber,
+                Address = orderDto.Address,
                 OrderedDate = DateTime.Now,
-                Status = status,
-                TotalQuantity = totalQuantity,
-                TotalMoney = totalMoney,
+                Status = orderDto.Status,
+                TotalQuantity = orderDto.TotalQuantity,
+                TotalMoney = orderDto.TotalMoney,
             };
-            order.OrderLists = new Collection<OrderList>();
-            order = await _orderAppService.InsertAsync(order);
-            return new OrderDto { 
-                Id = order.Id ,
-                Address = order.Address,
-                OrderedDate =order.OrderedDate,
-                PhoneNumber = order.PhoneNumber,
-                Status = order.Status,
-                UserName = order.UserName,
-                TotalQuantity = order.TotalQuantity,
-                TotalMoney = order.TotalMoney,
-            };
+            await _orderAppService.InsertAsync(newOrder);
+            OrderDto result = ObjectMapper.Map<Order, OrderDto>(newOrder);
+            return result;
         }
 
         public async Task DeleteOrderByIdAsync(Guid orderId)
@@ -71,45 +60,26 @@ namespace ModuleTopic6.Orders
         public async Task<OrderDto> GetOrderByIdAsync(Guid orderId)
         {
             var order = await _orderAppService.GetAsync(orderId);
-            return new OrderDto
-            {
-                Id = order.Id,
-                OrderedDate = order.OrderedDate,
-                Address = order.Address,
-                PhoneNumber = order.PhoneNumber,
-                UserName = order.UserName,
-                Status = order.Status,
-                TotalMoney= order.TotalMoney,
-                TotalQuantity= order.TotalQuantity,
-            };
+            var orderDto = ObjectMapper.Map<Order, OrderDto>(order);
+            return orderDto;
         }
 
         
-        public async Task<OrderDto> UpdateOrderByIdAsync(Guid orderId, string userName, string phoneNumber, string address, DateTime orderedDate, string status,  int totalQuantity,  float totalMoney)
+        public async Task<OrderDto> UpdateOrderByIdAsync(Guid orderId,OrderDto orderDto)
         {
             var order = await _orderAppService.GetAsync(orderId);
-
-            order.UserName = userName;
-            order.PhoneNumber = phoneNumber;
-            order.Address = address;
-            order.OrderedDate = orderedDate;
-            order.Status = status;
-            order.TotalQuantity = totalQuantity;
-            order.TotalMoney = totalMoney;
-
+            
+            order.UserName = orderDto.UserName;
+            order.PhoneNumber = orderDto.PhoneNumber;
+            order.Address = orderDto.Address;
+            order.OrderedDate = orderDto.OrderedDate;
+            order.Status = orderDto.Status;
+            order.TotalQuantity = orderDto.TotalQuantity;
+            order.TotalMoney = orderDto.TotalMoney;
             await _orderAppService.UpdateAsync(order);
 
-            return new OrderDto
-            {
-                Id = order.Id,
-                UserName = order.UserName,
-                PhoneNumber = order.PhoneNumber,
-                Address = order.Address,
-                OrderedDate = order.OrderedDate,
-                Status = order.Status,
-                TotalQuantity = order.TotalQuantity,
-                TotalMoney = order.TotalMoney
-            };
+            var result = ObjectMapper.Map<Order, OrderDto>(order);
+            return result;
         }
     }
 }

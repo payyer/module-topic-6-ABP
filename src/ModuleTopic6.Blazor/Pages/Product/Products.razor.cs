@@ -10,10 +10,11 @@ namespace ModuleTopic6.Blazor.Pages.Product
     public partial class Products
     {
         // Client
-        private Guid ProductId {  get; set; }
+        private Guid ProductId { get; set; }
         private bool modalVisible;
         private bool modalDelete;
         private bool isUpdate { get; set; } = false;
+        public Validations validations { get; set; }
         private Task ShowModalDelete(Guid productid)
         {
             modalDelete = true;
@@ -22,6 +23,7 @@ namespace ModuleTopic6.Blazor.Pages.Product
         }
         private Task HideModalDelete()
         {
+            modalDelete = false;
             return Task.CompletedTask;
         }
         private async Task ShowModalUpdate(Guid productId)
@@ -40,6 +42,7 @@ namespace ModuleTopic6.Blazor.Pages.Product
 
         private Task HideModal()
         {
+            validations.ClearAll();
             modalVisible = false;
             InputProductDto = new ProductDto();
             return Task.CompletedTask;
@@ -62,31 +65,42 @@ namespace ModuleTopic6.Blazor.Pages.Product
 
         public async Task CreateProduct()
         {
-            await ProductAppService.CreateProductAsync(
-                    InputProductDto.Name,
-                    InputProductDto.ProductCode,
-                    InputProductDto.PurchasePrice
-                );
-            InputProductDto = new ProductDto();
-            productDtos = await ProductAppService.GetProductListAsync();
-            HideModal();
+            if (await validations.ValidateAll())
+            {
+                await ProductAppService.CreateProductAsync(InputProductDto);
+                InputProductDto = new ProductDto();
+                productDtos = await ProductAppService.GetProductListAsync();
+                HideModal();
+            }
         }
-        public async Task UpdateProduct( ProductDto product )
+        public async Task UpdateProduct(ProductDto product)
         {
-            await ProductAppService.UpdateProductAsync(
-                    product.Id,
-                    product.Name,
-                    product.ProductCode,
-                    product.PurchasePrice
-                );
-            productDtos = await ProductAppService.GetProductListAsync();
-            HideModal();
+            if (await validations.ValidateAll())
+            {
+                await ProductAppService.UpdateProductAsync(product.Id, InputProductDto);
+                productDtos = await ProductAppService.GetProductListAsync();
+                HideModal();
+            }
         }
         public async Task DeleteProduct(Guid productId)
         {
             await ProductAppService.DeleteProductAsync(productId);
             productDtos = await ProductAppService.GetProductListAsync();
             HideModalDelete();
+        }
+
+        public void IsValidFloat(ValidatorEventArgs e)
+        {
+            if (Blazorise.Utilities.Converters.TryChangeType<float>(e.Value, out var result))
+            {
+                if (result > 0)
+                {
+                    e.Status = ValidationStatus.Success;
+                    return;
+                }
+            }
+
+            e.Status = ValidationStatus.Error;
         }
     }
 }

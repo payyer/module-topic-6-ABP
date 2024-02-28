@@ -2,7 +2,7 @@
 <Div>
     <Card>
         <CardHeader>
-                <h3>Product List</h3>
+            <h3>Product List</h3>
             <Button Clicked="ShowModal" Color="Color.Success" Size="Size.Medium">Create</Button>
         </CardHeader>
         <CardBody>
@@ -17,7 +17,7 @@
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    @if( productDtos != null)
+                    @if (productDtos != null)
                     {
                         @foreach (var product in productDtos)
                         {
@@ -34,7 +34,7 @@
                                     </TableRowCell>
                                 </TableRow>
                         }
-                    } 
+                    }
                     else
                     {
                         <p>Loading...</p>
@@ -53,24 +53,33 @@
             <ModalTitle>Create new Product</ModalTitle>
             <CloseButton />
         </ModalHeader>
-            <ModalBody>
-                <Field>
-                    <FieldLabel>Loại nhập hàng</FieldLabel>
-                    <TextEdit @bind-Text=@InputProductDto.Name />
-                </Field>
-                <Field>
-                    <FieldLabel>Mã sản phẩm</FieldLabel>
-                    <TextEdit @bind-Text=@InputProductDto.ProductCode />
-                </Field>
-                
-                <Field>
-                    <FieldLabel>Đơn giá</FieldLabel>
-                    <NumericEdit @bind-Value=@InputProductDto.PurchasePrice />
-                </Field>
-            </ModalBody>
+        <ModalBody>
+            <Validations @ref="validations" Mode="ValidationMode.Manual">
+                <Validation Validator="@ValidationRule.IsNotEmpty">
+                    <Field>
+                        <FieldLabel>Loại nhập hàng</FieldLabel>
+                        <TextEdit @bind-Text=@InputProductDto.Name />
+                    </Field>
+                </Validation>
+
+                <Validation Validator="@ValidationRule.IsNotEmpty">
+                    <Field>
+                        <FieldLabel>Mã sản phẩm</FieldLabel>
+                        <TextEdit @bind-Text=@InputProductDto.ProductCode />
+                    </Field>
+                </Validation>
+
+                <Validation Validator="@IsValidFloat">
+                    <Field>
+                        <FieldLabel>Đơn giá</FieldLabel>
+                        <NumericEdit @bind-Value=@InputProductDto.PurchasePrice />
+                    </Field>
+                </Validation>
+            </Validations>
+        </ModalBody>
         <ModalFooter>
             <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
-            @if(@isUpdate == true)
+            @if (@isUpdate == true)
             {
                 <Button Color="Color.Warning" Clicked="() => UpdateProduct(InputProductDto)">Update</Button>
             }

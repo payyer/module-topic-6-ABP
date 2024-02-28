@@ -6,8 +6,8 @@ using Volo.Abp.Uow;
 namespace ModuleTopic6.MongoDB;
 
 [DependsOn(
-    typeof(ModuleTopic6ApplicationTestModule),
-    typeof(ModuleTopic6MongoDbModule)
+    typeof(ModuleTopic6ApplicationTestModule)
+    //typeof(ModuleTopic6MongoDbModule)
 )]
 public class ModuleTopic6MongoDbTestModule : AbpModule
 {

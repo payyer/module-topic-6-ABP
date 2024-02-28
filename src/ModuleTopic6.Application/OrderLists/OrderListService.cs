@@ -20,29 +20,19 @@ namespace ModuleTopic6.OrderLists
 
 
 
-        public async Task<OrderListDto> CreateOrderListAsync(Guid orderId, Guid productId, string name, string productCode, int orderedQuantity, float purchasePrice, float totalMoney)
+        public async Task<OrderListDto> CreateOrderListAsync( OrderListDto orderListDto )
         {
             var orderList = await _orderListRepository.InsertAsync(new OrderList {
-                OrderId = orderId,
-                ProductId = productId,
-                Name = name,
-                OrderedQuantity = orderedQuantity,
-                ProductCode = productCode,
-                PurchasePrice = purchasePrice,
-                TotalMoney = totalMoney,
+                OrderId = orderListDto.OrderId,
+                ProductId = orderListDto.ProductId,
+                Name = orderListDto.Name,
+                OrderedQuantity = orderListDto.OrderedQuantity,
+                ProductCode = orderListDto.ProductCode,
+                PurchasePrice = orderListDto.PurchasePrice,
+                TotalMoney = orderListDto.TotalMoney,
             });
-
-            return new OrderListDto
-            {
-                Id = orderList.Id,
-                ProductId = orderList.ProductId,
-                OrderedQuantity = orderList.OrderedQuantity,
-                ProductCode = orderList.ProductCode,
-                TotalMoney= orderList.TotalMoney,
-                Name= name,
-                OrderId = orderList.OrderId,
-                PurchasePrice= orderList.PurchasePrice,
-            };
+            var result = ObjectMapper.Map<OrderList, OrderListDto>(orderList);
+            return result;
         }
 
         public async Task DeleteOrderList(Guid orderId)
@@ -58,17 +48,8 @@ namespace ModuleTopic6.OrderLists
         public async Task<OrderListDto> GetOrderListByIdAsync(Guid orderListId)
         {
             var orderList = await _orderListRepository.GetAsync(orderListId);
-            return new OrderListDto
-            {
-                Id = orderListId,
-                ProductId = orderList.ProductId,
-                OrderedQuantity = orderList.OrderedQuantity,
-                ProductCode = orderList.ProductCode,
-                TotalMoney= orderList.TotalMoney,
-                OrderId= orderList.OrderId,
-                PurchasePrice = orderList.PurchasePrice,
-                Name = orderList.Name,
-            };
+            var result = ObjectMapper.Map<OrderList, OrderListDto>(orderList);
+            return result;
         }
 
         public async Task<List<OrderListDto>> GetOrderListsAsync(Guid orderId)
@@ -88,31 +69,17 @@ namespace ModuleTopic6.OrderLists
             }).ToList();
         }
 
-        public async Task<OrderListDto> UpdateOrderListAsync(Guid orderListId, Guid orderId, Guid productId, string name, string productCode,  int orderedQuantity, float purchasePrice, float totalMoney)
+        public async Task<OrderListDto> UpdateOrderListAsync( Guid orderListId, OrderListDto orderListDto )
         {
-            var orderList = await _orderListRepository.GetAsync(orderListId);
-
-            orderList.OrderId = orderId;
-            orderList.ProductId = productId;
-            orderList.Name = name;
-            orderList.ProductCode = productCode;
-            orderList.OrderedQuantity = orderedQuantity;
-            orderList.PurchasePrice = purchasePrice;
-            orderList.TotalMoney = totalMoney;
-
-            await _orderListRepository.UpdateAsync(orderList);
-
-            return new OrderListDto
-            {
-                Id = orderList.Id,
-                OrderId = orderList.OrderId,
-                ProductId = orderList.ProductId,
-                Name = orderList.Name,
-                ProductCode = orderList.ProductCode,
-                OrderedQuantity = orderList.OrderedQuantity,
-                PurchasePrice = orderList.PurchasePrice,
-                TotalMoney = orderList.TotalMoney
-            };
+            var getOrderList = await _orderListRepository.GetAsync(orderListId);
+            getOrderList.Name = orderListDto.Name;
+            getOrderList.ProductCode = orderListDto.ProductCode;
+            getOrderList.OrderedQuantity = orderListDto.OrderedQuantity;
+            getOrderList.PurchasePrice = orderListDto.PurchasePrice;
+            getOrderList.TotalMoney = orderListDto.TotalMoney;
+            var orderUpdate = await _orderListRepository.UpdateAsync(getOrderList);
+            var result = ObjectMapper.Map<OrderList, OrderListDto>(orderUpdate);
+            return result;
         }
     }
 }

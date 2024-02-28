@@ -6,25 +6,8 @@ namespace ModuleTopic6.OrderLists
 {
     public interface IOrderListAppService : IApplicationService
     {
-        Task<OrderListDto> CreateOrderListAsync(
-                Guid orderId, 
-                Guid productId,
-                string name,
-                string productCode,
-                int orderedQuantity,
-                float purchasePrice,
-                float totalMoney
-            );
-        Task<OrderListDto> UpdateOrderListAsync(
-                Guid orderListId,
-                Guid orderId,
-                Guid productId,
-                string name,
-                string productCode,
-                int orderedQuantity,
-                float purchasePrice,
-                float totalMoney
-            );
+        Task<OrderListDto> CreateOrderListAsync( OrderListDto orderListDto );
+        Task<OrderListDto> UpdateOrderListAsync( Guid orderListId, OrderListDto orderListDto );
         Task<List<OrderListDto>> GetOrderListsAsync(Guid orderId);
         Task<OrderListDto> GetOrderListByIdAsync(Guid orderListId);
         Task DeleteOrderList(Guid orderId);

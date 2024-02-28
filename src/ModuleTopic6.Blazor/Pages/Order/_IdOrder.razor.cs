@@ -12,7 +12,7 @@ namespace ModuleTopic6.Blazor.Pages.Order
     public partial class _IdOrder
     {
         [Inject]
-        IProductAppService _productAppService {  get; set; }
+        IProductAppService _productAppService { get; set; }
         [Inject]
         IOrderAppService _orderAppService { get; set; }
         [Inject]
@@ -21,6 +21,8 @@ namespace ModuleTopic6.Blazor.Pages.Order
         NavigationManager _navigationManager { get; set; }
         [Parameter]
         public string OrderId { get; set; }
+        [Inject] 
+        INotificationService NotificationService { get; set; }
         private Guid orderIdGuid;
         private Guid orderListGuidId;
         private List<string> status { get; set; } = new List<string> { "Khởi tạo", "Xác nhận", "Vận chuyển", "Hoàn thành", "Hủy" };
@@ -31,6 +33,8 @@ namespace ModuleTopic6.Blazor.Pages.Order
         public List<ProductDto> ProductDtos { get; set; }
         public List<OrderListDto> orderListDtos { get; set; } = new List<OrderListDto>();
         public List<OrderListDto> OrderListToDelete { get; set; }
+        public Validations validationsOrder { get; set; }
+        public Validations validationsOrderList { get; set; }
         private bool modalVisible;
         public Guid defaultValue { get; set; } = Guid.Empty;
         public Guid SelectedProductId { get; set; }
@@ -45,7 +49,7 @@ namespace ModuleTopic6.Blazor.Pages.Order
             {
                 orderIdGuid = result;
             }
-            if(orderIdGuid != Guid.Empty)
+            if (orderIdGuid != Guid.Empty)
             {
                 InputOrderDto = await _orderAppService.GetOrderByIdAsync(orderIdGuid);
                 orderListDtos = await _orderListAppService.GetOrderListsAsync(orderIdGuid);
@@ -53,7 +57,8 @@ namespace ModuleTopic6.Blazor.Pages.Order
         }
         public async Task OnSelectedValueChanged(Guid productId)
         {
-            if(productId != Guid.Empty)
+            InputOrderListDto.OrderedQuantity = 0;
+            if (productId != Guid.Empty)
             {
                 SelectedProductDto = await _productAppService.GetProductByIdAsync(productId);
                 InputOrderListDto.Name = SelectedProductDto.Name;
@@ -70,49 +75,48 @@ namespace ModuleTopic6.Blazor.Pages.Order
         }
         private async Task CraeteOrder()
         {
-            var order = await _orderAppService.CreateOrderAsync(
-                    userName: InputOrderDto.UserName,
-                    phoneNumber: InputOrderDto.PhoneNumber,
-                    address: InputOrderDto.Address,
-                    status: InputOrderDto.Status,
-                    totalQuantity: InputOrderDto.TotalQuantity,
-                    totalMoney: InputOrderDto.TotalMoney
-                );
-            foreach (var orderList in orderListDtos)
+            if ( await validationsOrder.ValidateAll() && orderListDtos.Count != 0)
             {
-                await _orderListAppService.CreateOrderListAsync(
-                        orderId: order.Id,
-                        orderList.ProductId,
-                        orderList.Name,
-                        orderList.ProductCode,
-                        orderList.OrderedQuantity,
-                        orderList.PurchasePrice,
-                        orderList.TotalMoney
-                    );
+                var order = await _orderAppService.CreateOrderAsync(orderDto: InputOrderDto);
+                foreach (var orderList in orderListDtos)
+                {
+                    orderList.OrderId = order.Id;
+                    await _orderListAppService.CreateOrderListAsync(orderList);
+                }
+                _navigationManager.NavigateTo("/orders");
             }
-            _navigationManager.NavigateTo("/orders");
+            else
+            {
+                Console.WriteLine("Không có sản phẩm xin hảy thêm");
+            }
         }
+        // Xử lý ở đây
         private async Task AddProductToOrderList(Guid productId)
         {
-            var newOrderList = new OrderListDto
+            if(await validationsOrderList.ValidateAll() )
             {
-                OrderId = Guid.Empty,
-                ProductId = productId,
-                Name = InputOrderListDto.Name,
-                ProductCode = InputOrderListDto.ProductCode,
-                OrderedQuantity = InputOrderListDto.OrderedQuantity,
-                PurchasePrice = InputOrderListDto.PurchasePrice,
-                TotalMoney = InputOrderListDto.TotalMoney,
-            };
-            orderListDtos.Add( newOrderList );
-            int totalQuantity = 0;
-            foreach (var orderList in orderListDtos)
-            {
-                totalQuantity += orderList.OrderedQuantity;
-                InputOrderDto.TotalMoney += orderList.TotalMoney;
+                var newOrderList = new OrderListDto
+                {
+                    OrderId = Guid.Empty,
+                    ProductId = productId,
+                    Name = InputOrderListDto.Name,
+                    ProductCode = InputOrderListDto.ProductCode,
+                    OrderedQuantity = InputOrderListDto.OrderedQuantity,
+                    PurchasePrice = InputOrderListDto.PurchasePrice,
+                    TotalMoney = InputOrderListDto.TotalMoney,
+                };
+                orderListDtos.Add(newOrderList);
+                int totalQuantity = 0;
+                float totalMoney = 0;
+                foreach (var orderList in orderListDtos)
+                {
+                    totalQuantity += orderList.OrderedQuantity;
+                    totalMoney += orderList.TotalMoney;
+                }
+                InputOrderDto.TotalMoney = totalMoney;
+                InputOrderDto.TotalQuantity = totalQuantity;
+                HideModal();
             }
-            InputOrderDto.TotalQuantity = totalQuantity;
-            HideModal();
         }
         private void UpdateQuantity(ChangeEventArgs e)
         {
@@ -128,47 +132,32 @@ namespace ModuleTopic6.Blazor.Pages.Order
 
             return Task.CompletedTask;
         }
-        private Task HideModal()
+        private async Task HideModal()
         {
             modalVisible = false;
+            isUPdateOrderLIst = false;
             SelectedProductDto = new ProductDto();
             InputOrderListDto = new OrderListDto();
-            return Task.CompletedTask;
+            await validationsOrderList.ClearAll();
         }
         private Task OnModalClosing(ModalClosingEventArgs e)
         {
-             return HideModal();
+           return HideModal();
         }
 
         private async Task UpdateOrder(Guid orderId)
         {
-            await _orderAppService.UpdateOrderByIdAsync(
-                orderIdGuid,
-                InputOrderDto.UserName,
-                InputOrderDto.PhoneNumber,
-                InputOrderDto.Address,
-                InputOrderDto.OrderedDate,
-                InputOrderDto.Status,
-                InputOrderDto.TotalQuantity,
-                InputOrderDto.TotalMoney
-            );
+            var order = await _orderAppService.UpdateOrderByIdAsync(orderIdGuid, InputOrderDto);
 
             foreach (var orderList in orderListDtos)
             {
-                if( orderList.Id == Guid.Empty)
+                if (orderList.Id == Guid.Empty)
                 {
-                    await _orderListAppService.CreateOrderListAsync(
-                            orderIdGuid,
-                            orderList.ProductId,
-                            orderList.Name,
-                            orderList.ProductCode,
-                            orderList.OrderedQuantity,
-                            orderList.PurchasePrice,
-                            orderList.TotalMoney
-                        );
+                    orderList.OrderId = order.Id;
+                    await _orderListAppService.CreateOrderListAsync(orderList);
                 }
             }
-            foreach( var oderListDelete in OrderListToDelete)
+            foreach (var oderListDelete in OrderListToDelete)
             {
                 await _orderListAppService.DeleteOrderListById(oderListDelete.Id);
             }
@@ -187,53 +176,102 @@ namespace ModuleTopic6.Blazor.Pages.Order
                 totalQuantity += orderListCalculate.OrderedQuantity;
                 totalMoney += orderListCalculate.TotalMoney;
             }
-            InputOrderDto.TotalMoney = totalQuantity;
+            InputOrderDto.TotalMoney = totalMoney;
             InputOrderDto.TotalQuantity = totalQuantity;
         }
 
-        private async Task ShowUpdateOrderList(Guid orderListId)
+        private async Task ShowUpdateOrderList(OrderListDto orderListDto)
         {
-            InputOrderListDto = await _orderListAppService.GetOrderListByIdAsync(orderListId);
+            if (orderListDto.Id == Guid.Empty)
+            {
+                InputOrderListDto = orderListDto;
+            }
+            else
+            {
+                InputOrderListDto = await _orderListAppService.GetOrderListByIdAsync(orderListDto.Id);
+                InputOrderListDto.Name = orderListDto.Name;
+            }
             isUPdateOrderLIst = true;
-            orderListGuidId = orderListId;
+            orderListGuidId = orderListDto.Id;
             ShowModal();
         }
 
+
         private async Task UpdateOrderList()
         {
-            var orderListUpdate = await _orderListAppService.UpdateOrderListAsync(
-                    orderListGuidId,
-                    InputOrderListDto.OrderId,
-                    InputOrderListDto.ProductId,
-                    InputOrderListDto.Name,
-                    InputOrderListDto.ProductCode,
-                    InputOrderListDto.OrderedQuantity,
-                    InputOrderListDto.PurchasePrice,
-                    InputOrderListDto.TotalMoney
-                );
-            var updatedOrderList = orderListDtos.Find(o => o.Id == orderListGuidId);
-            if (updatedOrderList != null)
+            if ( await validationsOrderList.ValidateAll())
             {
-                updatedOrderList.OrderId = orderListUpdate.OrderId;
-                updatedOrderList.ProductId = orderListUpdate.ProductId;
-                updatedOrderList.Name = orderListUpdate.Name;
-                updatedOrderList.ProductCode = orderListUpdate.ProductCode;
-                updatedOrderList.OrderedQuantity = orderListUpdate.OrderedQuantity;
-                updatedOrderList.PurchasePrice = orderListUpdate.PurchasePrice;
-                updatedOrderList.TotalMoney = orderListUpdate.TotalMoney;
+                if (orderListGuidId == Guid.Empty)
+                {
+                    var index = orderListDtos.FindIndex(o => o == InputOrderListDto);
+                    orderListDtos[index] = InputOrderListDto;
+                }
+                else
+                {
+                    var orderListUpdate = await _orderListAppService.UpdateOrderListAsync(orderListGuidId, InputOrderListDto);
+                    var updatedOrderList = orderListDtos.Find(o => o.Id == orderListGuidId);
+                    if (updatedOrderList != null)
+                    {
+                        updatedOrderList.OrderId = orderListUpdate.OrderId;
+                        updatedOrderList.ProductId = orderListUpdate.ProductId;
+                        updatedOrderList.Name = orderListUpdate.Name;
+                        updatedOrderList.ProductCode = orderListUpdate.ProductCode;
+                        updatedOrderList.OrderedQuantity = orderListUpdate.OrderedQuantity;
+                        updatedOrderList.PurchasePrice = orderListUpdate.PurchasePrice;
+                        updatedOrderList.TotalMoney = orderListUpdate.TotalMoney;
+                    }
+                }
+                int totalQuantity = 0;
+                float totalMoney = 0;
+                foreach (var orderListCalculate in orderListDtos)
+                {
+                    totalQuantity += orderListCalculate.OrderedQuantity;
+                    totalMoney += orderListCalculate.TotalMoney;
+                }
+                InputOrderDto.TotalMoney = totalMoney;
+                InputOrderDto.TotalQuantity = totalQuantity;
+                HideModal();
+            }
+        }
+
+        static void IsValidInteger(ValidatorEventArgs e)
+        {
+            if (Blazorise.Utilities.Converters.TryChangeType<int>(e.Value, out var result))
+            {
+                if (result > 0)
+                {
+                    e.Status = ValidationStatus.Success;
+                    return;
+                }
             }
 
-            int totalQuantity = 0;
-            float totalMoney = 0;
-            foreach (var orderListCalculate in orderListDtos)
-            {
-                totalQuantity += orderListCalculate.OrderedQuantity;
-                totalMoney += orderListCalculate.TotalMoney;
-            }
-            InputOrderDto.TotalMoney = totalMoney;
-            InputOrderDto.TotalQuantity = totalQuantity;
+            e.Status = ValidationStatus.Error;
+        }
 
-            HideModal();
+        static void IsValidFloat(ValidatorEventArgs e)
+        {
+            if (Blazorise.Utilities.Converters.TryChangeType<float>(e.Value, out var result))
+            {
+                if (result > 0)
+                {
+                    e.Status = ValidationStatus.Success;
+                    return;
+                }
+            }
+
+            e.Status = ValidationStatus.Error;
+        }
+
+        void ValidateStringSelect(ValidatorEventArgs e)
+        {
+            var selectedValue = e.Value as string;
+            e.Status = !string.IsNullOrEmpty(selectedValue) ? ValidationStatus.Success : ValidationStatus.Error;
+        }
+
+        void ValidateGuidSelect(ValidatorEventArgs e)
+        {
+            var selectedValue = (Guid)e.Value;
+            e.Status = selectedValue != Guid.Empty ? ValidationStatus.Success : ValidationStatus.Error;
         }
     }
 }
