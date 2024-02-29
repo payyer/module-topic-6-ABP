@@ -24,8 +24,9 @@
                     {
                         @foreach (var order in orderDtos)
                         {
+                            int count = orderDtos.IndexOf(order) + 1;
                             <TableRow>
-                                <TableRowHeader>1</TableRowHeader>
+                                <TableRowHeader>@count</TableRowHeader>
                                 <TableRowCell>@order.UserName</TableRowCell>
                                 <TableRowCell>@order.PhoneNumber</TableRowCell>
                                 <TableRowCell>@order.Address</TableRowCell>

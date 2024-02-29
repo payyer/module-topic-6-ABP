@@ -21,8 +21,9 @@
                     {
                         @foreach (var product in productDtos)
                         {
+                            int count = productDtos.IndexOf(product) + 1;
                             <TableRow>
-                                <TableRowHeader>1</TableRowHeader>
+                                <TableRowHeader>@count</TableRowHeader>
                                 <TableRowCell>@product.Name</TableRowCell>
                                     <TableRowCell>@product.ProductCode</TableRowCell>
                                     <TableRowCell>@product.PurchasePrice</TableRowCell>

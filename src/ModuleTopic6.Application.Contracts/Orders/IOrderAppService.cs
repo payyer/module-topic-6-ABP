@@ -9,16 +9,6 @@ namespace ModuleTopic6.Orders
     {
         Task<List<OrderDto>> GetListOrderAsync();
         Task<OrderDto> GetOrderByIdAsync(Guid orderId);
-        //Task<OrderDto> CreateOrderAsync
-        //    (
-        //        string userName,
-        //        string phoneNumber,
-        //        string address,
-        //        string status,
-        //        int totalQuantity,
-        //        float totalMoney
-        //    );
-
         Task<OrderDto> CreateOrderAsync(OrderDto orderDto);
         Task<OrderDto> UpdateOrderByIdAsync(Guid orderId,OrderDto orderDto);
         Task DeleteOrderByIdAsync(Guid orderId );

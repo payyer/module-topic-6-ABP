@@ -58,6 +58,7 @@ namespace ModuleTopic6.Blazor.Pages.Order
         public async Task OnSelectedValueChanged(Guid productId)
         {
             InputOrderListDto.OrderedQuantity = 0;
+            InputOrderListDto.TotalMoney = 0;
             if (productId != Guid.Empty)
             {
                 SelectedProductDto = await _productAppService.GetProductByIdAsync(productId);
@@ -115,6 +116,7 @@ namespace ModuleTopic6.Blazor.Pages.Order
                 }
                 InputOrderDto.TotalMoney = totalMoney;
                 InputOrderDto.TotalQuantity = totalQuantity;
+                InputOrderListDto = new OrderListDto();
                 HideModal();
             }
         }
@@ -189,7 +191,6 @@ namespace ModuleTopic6.Blazor.Pages.Order
             else
             {
                 InputOrderListDto = await _orderListAppService.GetOrderListByIdAsync(orderListDto.Id);
-                InputOrderListDto.Name = orderListDto.Name;
             }
             isUPdateOrderLIst = true;
             orderListGuidId = orderListDto.Id;

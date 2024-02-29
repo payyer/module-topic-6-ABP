@@ -112,8 +112,9 @@
              <TableBody>
                  @foreach (var orderList in orderListDtos)
                 {
+                    var count = orderListDtos.IndexOf(orderList) + 1;
                     <TableRow>
-                        <TableRowHeader>1</TableRowHeader>
+                        <TableRowHeader>@count</TableRowHeader>
                         <TableRowCell>@orderList.Name</TableRowCell>
                             <TableRowCell>@orderList.ProductCode</TableRowCell>
                             <TableRowCell>@orderList.OrderedQuantity</TableRowCell>
